@@ -36,3 +36,6 @@ desktop.ini
 # --- Logs / temp ---
 *.log
 *.tmp
+
+# --- Stray screenshots (renamed copies live under screenshots/) ---
+Screenshot *.png

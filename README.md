@@ -132,7 +132,6 @@ Two separate stores — **the password is never written to disk in plaintext**.
 | File | Role |
 |------|------|
 | `sinkhole_express_ctk.pyw` | Main app — CustomTkinter edition (active) |
-| `sinkhole_express_ctk1.pyw` | Older CTk snapshot (kept for reference) |
 | `sinkhole_express.pyw` | Fallback app — Tkinter edition |
 | `sinkhole_express.ico` | Multi-res Windows icon (256→16 px) |
 | `sinkhole_express_icon.png` | 512 px PNG preview of the icon |
