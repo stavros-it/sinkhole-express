@@ -35,13 +35,16 @@
 
 ## Screenshots
 
-<p align="center">
-  <strong>Blocking enabled</strong><br>
-  <img src="screenshots/enabled.png" alt="Sinkhole Express with Pi-hole blocking enabled" width="320">
-  &nbsp;&nbsp;
-  <strong>Blocking disabled</strong><br>
-  <img src="screenshots/disabled.png" alt="Sinkhole Express with Pi-hole blocking disabled" width="320">
-</p>
+<table align="center">
+  <tr>
+    <td align="center"><img src="screenshots/enabled.png" alt="Blocking enabled" width="320"></td>
+    <td align="center"><img src="screenshots/disabled.png" alt="Blocking disabled" width="320"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Blocking enabled</strong></td>
+    <td align="center"><strong>Blocking disabled</strong></td>
+  </tr>
+</table>
 
 ## Requirements
 
