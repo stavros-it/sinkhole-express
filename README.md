@@ -163,3 +163,7 @@ Licensed under the **MIT License** — see [LICENSE](LICENSE).
 - [Pi-hole](https://pi-hole.net/) — the upstream project whose v6 REST API this app drives.
 - [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) — the modern dark UI framework.
 - [keyring](https://github.com/jaraco/keyring) — for secure credential storage in Windows Credential Manager.
+
+## AI assistance
+
+Parts of this codebase, documentation and commit messages were generated or refined with the help of AI tools. All output was reviewed and accepted by the maintainer before being committed.
