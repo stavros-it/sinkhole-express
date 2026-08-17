@@ -11,6 +11,8 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/stavros-it/sinkhole-express/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/stavros-it/sinkhole-express/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/stavros-it/sinkhole-express/actions/workflows/release.yml"><img alt="Release" src="https://github.com/stavros-it/sinkhole-express/actions/workflows/release.yml/badge.svg"></a>
   <a href="https://github.com/stavros-it/sinkhole-express/releases"><img alt="platform" src="https://img.shields.io/badge/platform-Windows%2011-blue"></a>
   <a href="https://www.python.org/downloads/"><img alt="python" src="https://img.shields.io/badge/python-3.12%2B-blue"></a>
   <a href="https://docs.pi-hole.net/main/ftldns/"><img alt="pi--hole" src="https://img.shields.io/badge/Pi--hole-v6%20REST%20API-green"></a>

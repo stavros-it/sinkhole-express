@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  syntax-check:
+    name: Syntax check (.pyw files)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile .pyw files (byte-compile, no execution)
+        run: |
+          python -m py_compile sinkhole_express.pyw sinkhole_express_ctk.pyw sinkhole_express_ctk1.pyw
+          Write-Output "All .pyw files compile cleanly."
+
+      - name: Verify installable dependencies resolve
+        run: |
+          python -m pip install --upgrade pip
+          pip install customtkinter keyring
+
+  lint:
+    name: Lint with ruff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff check
+        run: ruff check --select F --ignore F401,F841 .
+
+      - name: Run ruff format check
+        run: ruff format --check --diff .
