@@ -35,7 +35,7 @@ jobs:
           --name SinkholeExpress
           --add-data "sinkhole_express.ico;."
           --collect-data customtkinter
-          sinkhole_express_ctk.pyw
+          sinkhole_express.pyw
 
       - name: Verify build output
         run: |

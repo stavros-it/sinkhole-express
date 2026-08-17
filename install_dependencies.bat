@@ -1,9 +1,8 @@
 @echo off
 REM ===========================================================================
 REM  Sinkhole Express - Dependency Installer
-REM  Installs Python packages required by both editions:
-REM    - sinkhole_express.pyw       (standard Tkinter)  -> keyring
-REM    - sinkhole_express_ctk.pyw   (CustomTkinter)     -> keyring, customtkinter
+REM  Installs Python packages required by the app:
+REM    - sinkhole_express.pyw   (CustomTkinter UI)  -> keyring, customtkinter
 REM  Tkinter itself ships with the standard Windows Python installer.
 REM ===========================================================================
 
@@ -51,8 +50,7 @@ echo ============================================
 echo   All dependencies installed successfully.
 echo ============================================
 echo.
-echo You can now launch either edition:
-echo   - sinkhole_express.pyw        (Tkinter edition)
-echo   - sinkhole_express_ctk.pyw    (CustomTkinter edition)
+echo You can now launch the app:
+echo   - sinkhole_express.pyw    (CustomTkinter UI)
 echo.
 pause

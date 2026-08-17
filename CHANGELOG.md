@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 - Timed auto-refresh of stats (e.g. every 10 s) so the panel stays live.
 - Temporary-disable dropdown (5 / 10 / 30 min) wired to `set_blocking(timer=…)`.
-- Port the stats panel + settings window into the Tkinter edition for parity.
 - PyInstaller build script for a self-contained `.exe`.
 - Greek-language HTML user guide.
 - Multi-Pi-hole support (profiles / dropdown).
@@ -19,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial public release of **Sinkhole Express**.
-- **CustomTkinter edition** (`sinkhole_express_ctk.pyw`) — primary app:
+- **Sinkhole Express** (`sinkhole_express.pyw`) — CustomTkinter UI:
   - One-click toggle of Pi-hole v6 DNS blocking ON/OFF.
   - Live status indicator (green `● ENABLED` / amber `● DISABLED`) with color-coded
     toggle button (red "Disable" when ON, green "Enable" when OFF).
@@ -33,15 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     show/hide toggle, Save & Connect / Clear stored buttons.
   - Auto-connect on launch when credentials are already stored.
   - Transparent re-auth on session expiry (HTTP 401) during refresh.
-- **Tkinter fallback edition** (`sinkhole_express.pyw`) — minimal dependency
-  version with inline-settings layout (no stats panel / settings window).
 - Windowless launch via `.pyw` + `pythonw.exe` (no console window).
 - Bundled multi-resolution Windows icon (`sinkhole_express.ico`, 256→16 px)
   and 512 px PNG preview (`sinkhole_express_icon.png`).
 - `install_dependencies.bat` — installs `keyring` + `customtkinter` via pip.
-- `create_desktop_shortcut.bat` — creates "Sinkhole Express" and
-  "Sinkhole Express (Classic)" desktop shortcuts via `pythonw.exe`, with
-  OneDrive-redirected desktop resolution.
+- `create_desktop_shortcut.bat` — creates the "Sinkhole Express" desktop
+  shortcut via `pythonw.exe`, with OneDrive-redirected desktop resolution.
 - `PROJECT_CONTEXT.md` — architecture / endpoints reference for AI coding agents.
 - Configuration persisted to `%APPDATA%\SinkholeExpress\config.json`
   (host, port, https) — never writes the password to disk.
@@ -62,8 +58,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No timed auto-refresh of stats yet (manual Refresh only).
 - No timed disable (the API's `timer` parameter is wired in the client but
   not exposed in the UI).
-- The Tkinter edition lacks the stats panel and settings window present in
-  the CTk edition (feature parity is not maintained).
 - The Pi-hole v6 REST API exposes no endpoint for `pihole -up` (component
   update) — only `gravity`, `restartdns`, and `flush/*` actions. The app
   shows the standard "run `pihole -up` on the Pi" hint and cannot trigger

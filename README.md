@@ -31,9 +31,7 @@
 - **Settings window** — host, port, HTTPS toggle, masked app password (stored in Windows Credential Manager via `keyring`).
 - **Windowless launch** — `.pyw` + `pythonw.exe`, no console window.
 - **Auto-connect on launch** when credentials are already stored.
-- Two editions:
-  - **`sinkhole_express_ctk.pyw`** — primary, [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) UI (modern, dark).
-  - **`sinkhole_express.pyw`** — classic Tkinter fallback (fewer dependencies, no stats panel).
+- Built with [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) for a modern, dark UI.
 
 ## Screenshots
 
@@ -71,11 +69,11 @@
    ```bat
    create_desktop_shortcut.bat
    ```
-   Creates **"Sinkhole Express"** (CTk edition) and **"Sinkhole Express (Classic)"** desktop shortcuts that launch via `pythonw.exe` with the bundled `.ico`.
+   Creates a **"Sinkhole Express"** desktop shortcut that launches via `pythonw.exe` with the bundled `.ico`.
 
 ## Usage
 
-1. Launch `sinkhole_express_ctk.pyw` (double-click it, or use the desktop shortcut).
+1. Launch `sinkhole_express.pyw` (double-click it, or use the desktop shortcut).
 2. On first run it will say *"Open Settings to configure"* — click the **⚙ Settings** button (top-right).
 3. Enter:
    - **Pi-hole IP / host** — e.g. `192.168.1.10`
@@ -131,12 +129,11 @@ Two separate stores — **the password is never written to disk in plaintext**.
 
 | File | Role |
 |------|------|
-| `sinkhole_express_ctk.pyw` | Main app — CustomTkinter edition (active) |
-| `sinkhole_express.pyw` | Fallback app — Tkinter edition |
+| `sinkhole_express.pyw` | Main app — CustomTkinter UI |
 | `sinkhole_express.ico` | Multi-res Windows icon (256→16 px) |
 | `sinkhole_express_icon.png` | 512 px PNG preview of the icon |
 | `install_dependencies.bat` | Installs `keyring` + `customtkinter` via pip |
-| `create_desktop_shortcut.bat` | Creates desktop shortcuts for both editions |
+| `create_desktop_shortcut.bat` | Creates the desktop shortcut |
 | `PROJECT_CONTEXT.md` | Architecture / endpoints reference for AI coding agents |
 
 ## Building an `.exe`
@@ -144,14 +141,13 @@ Two separate stores — **the password is never written to disk in plaintext**.
 Not bundled yet. Suggested invocation (per the author's usual pattern):
 
 ```bat
-pyinstaller --onefile --windowed --icon sinkhole_express.ico --name "SinkholeExpress" sinkhole_express_ctk.pyw
+pyinstaller --onefile --windowed --icon sinkhole_express.ico --name "SinkholeExpress" sinkhole_express.pyw
 ```
 
 ## Roadmap
 
 - [ ] Timed auto-refresh of stats (e.g. every 10 s).
 - [ ] Temporary-disable dropdown (5 / 10 / 30 min) wired to `set_blocking(timer=…)`.
-- [ ] Port the stats panel + settings window into the Tkinter edition for parity.
 - [ ] PyInstaller build script for a self-contained `.exe`.
 - [ ] Greek-language HTML user guide.
 - [ ] Multi-Pi-hole support (profiles / dropdown).

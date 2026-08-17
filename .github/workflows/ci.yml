@@ -23,7 +23,7 @@ jobs:
 
       - name: Compile .pyw files (byte-compile, no execution)
         run: |
-          python -m py_compile sinkhole_express.pyw sinkhole_express_ctk.pyw
+          python -m py_compile sinkhole_express.pyw
           Write-Output "All .pyw files compile cleanly."
 
       - name: Verify installable dependencies resolve

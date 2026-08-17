@@ -9,16 +9,9 @@
 
 A lightweight Windows 11 desktop utility to **view and toggle Pi-hole v6
 DNS blocking ON/OFF** and display key statistics, without opening the Pi-hole
-web admin. Runs as a windowless `.pyw` (no console). Two editions share the
-same backend logic:
+web admin. Runs as a windowless `.pyw` (no console).
 
-- **`sinkhole_express_ctk.pyw`** — primary edition, CustomTkinter UI (modern, dark).
-- **`sinkhole_express.pyw`** — classic edition, standard Tkinter/ttk UI (fallback,
-  fewer dependencies; does NOT include the stats panel or the settings window —
-  it still uses the older inline-settings layout).
-
-The CTk edition is the one under active development. Feature parity with the
-Tkinter edition is not maintained; treat the Tkinter file as a minimal fallback.
+- **`sinkhole_express.pyw`** — the app, [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) UI (modern, dark).
 
 ---
 
@@ -37,12 +30,11 @@ Tkinter edition is not maintained; treat the Tkinter file as a minimal fallback.
 
 | File | Role |
 |------|------|
-| `sinkhole_express_ctk.pyw` | Main app — CustomTkinter edition (active) |
-| `sinkhole_express.pyw` | Fallback app — Tkinter edition |
+| `sinkhole_express.pyw` | Main app — CustomTkinter UI |
 | `sinkhole_express.ico` | Multi-res Windows icon (256→16px) |
 | `sinkhole_express_icon.png` | 512px PNG preview of the icon |
 | `install_dependencies.bat` | Installs `keyring` + `customtkinter` via pip |
-| `create_desktop_shortcut.bat` | Creates desktop shortcut(s) for both editions |
+| `create_desktop_shortcut.bat` | Creates the desktop shortcut |
 | `PROJECT_CONTEXT.md` | This file |
 
 There is **no** `requirements.txt`; dependencies are installed by the `.bat`.
@@ -51,7 +43,7 @@ There is **no** `requirements.txt`; dependencies are installed by the `.bat`.
 
 ## 4. Dependencies
 
-- `customtkinter` — UI (CTk edition only).
+- `customtkinter` — UI.
 - `keyring` — secure password storage in Windows Credential Manager.
 - Standard library: `tkinter`, `urllib.request`, `urllib.error`, `ssl`,
   `json`, `os`, `threading`.
@@ -92,7 +84,7 @@ Client class: `PiHoleAPI(base_url)` — session-based auth.
 | `authenticate(password)` | POST | `/auth` | Body `{"password": ...}`. Returns SID from `session.sid`; raises if `session.valid` is false. |
 | `get_status()` | GET | `/dns/blocking` | Returns `"enabled"` / `"disabled"`. |
 | `set_blocking(enabled, timer=None)` | POST | `/dns/blocking` | Body `{"blocking": bool, "timer": seconds|null}`. `timer` enables temporary disable (currently always None in UI). |
-| `get_stats()` | GET | `/stats/summary` | Returns `queries{}`, `clients{}`, `gravity{}`. CTk edition only. |
+| `get_stats()` | GET | `/stats/summary` | Returns `queries{}`, `clients{}`, `gravity{}`. |
 | `update_gravity()` | POST | `/action/gravity` | Rebuilds blocklists. Returns **plain-text** progress log, NOT JSON — call with `raw=True` and a long timeout (180s). Can take 20-60s. |
 | `get_version()` | GET | `/info/version` | Returns `version.{core,web,ftl}.{local,remote}.version`. Used to flag update-available. |
 | `logout()` | DELETE | `/auth` | Called on window close. |
@@ -141,7 +133,7 @@ holds the *other* scheme's default, so manual overrides are preserved.
 
 ---
 
-## 8. CTk edition UI structure (`App(ctk.CTk)`)
+## 8. UI structure (`App(ctk.CTk)`)
 
 Layout, top → bottom:
 1. Header label "Sinkhole Blocking".
@@ -202,7 +194,7 @@ messagebox and disables the toggle button.
   not exist). Finds `pythonw.exe` via `where`. Writes a temp `.ps1` to build
   each shortcut via `WScript.Shell` (avoids caret line-continuation quoting
   bugs). Sets target=pythonw, arguments=quoted `.pyw` path, working dir, and
-  the `.ico`. Creates "Sinkhole Express" (CTk) and "Sinkhole Express (Classic)".
+  the `.ico`. Creates the "Sinkhole Express" desktop shortcut.
 
 ---
 
@@ -225,7 +217,6 @@ messagebox and disables the toggle button.
 
 - Timed auto-refresh of stats (e.g. every 10s) so the panel stays live.
 - Temporary-disable dropdown (5/10/30 min) wired to `set_blocking(timer=...)`.
-- Port the stats panel + settings window into the Tkinter edition for parity.
 - PyInstaller build script (`--onefile --windowed --icon sinkhole_express.ico`)
   for a self-contained `.exe`.
 - Greek-language HTML user guide (per author's usual pattern).

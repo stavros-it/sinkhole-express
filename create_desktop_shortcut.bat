@@ -1,7 +1,7 @@
 @echo off
 REM ===========================================================================
 REM  Sinkhole Express - Desktop Shortcut Installer
-REM  Creates desktop shortcuts for both editions using pythonw.exe (no console)
+REM  Creates a desktop shortcut using pythonw.exe (no console)
 REM  and the bundled sinkhole_express.ico icon.
 REM
 REM  Resolves the REAL Desktop path via Windows (handles OneDrive-redirected
@@ -23,8 +23,7 @@ set "APPDIR=%~dp0"
 if "%APPDIR:~-1%"=="\" set "APPDIR=%APPDIR:~0,-1%"
 
 set "ICON=%APPDIR%\sinkhole_express.ico"
-set "TK=%APPDIR%\sinkhole_express.pyw"
-set "CTK=%APPDIR%\sinkhole_express_ctk.pyw"
+set "APP=%APPDIR%\sinkhole_express.pyw"
 
 REM --- Locate pythonw.exe ---
 set "PYW="
@@ -56,16 +55,10 @@ REM --- Build shortcuts. All PowerShell is written to a temp .ps1 to avoid
 REM     the caret line-continuation quoting problems. ---
 set "PS1=%TEMP%\sinkhole_mkshortcut.ps1"
 
-if exist "%CTK%" (
-    call :make_shortcut "Sinkhole Express" "%CTK%"
+if exist "%APP%" (
+    call :make_shortcut "Sinkhole Express" "%APP%"
 ) else (
-    echo [skip] %CTK% not found.
-)
-
-if exist "%TK%" (
-    call :make_shortcut "Sinkhole Express (Classic)" "%TK%"
-) else (
-    echo [skip] %TK% not found.
+    echo [skip] %APP% not found.
 )
 
 if exist "%PS1%" del "%PS1%" >nul 2>&1
