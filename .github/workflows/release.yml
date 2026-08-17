@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-windows:
     name: Build portable Windows .exe
     runs-on: windows-latest
 
@@ -34,6 +34,7 @@ jobs:
           --icon sinkhole_express.ico
           --name SinkholeExpress
           --add-data "sinkhole_express.ico;."
+          --add-data "sinkhole_express_icon.png;."
           --collect-data customtkinter
           sinkhole_express.pyw
 
@@ -63,3 +64,91 @@ jobs:
           --title ${{ github.ref_name }}
           --generate-notes
           --notes "Portable Windows build of Sinkhole Express. Requires Pi-hole v6 with the REST API enabled. Download, double-click, and configure host/port/password in Settings."
+
+  build-linux:
+    name: Build Linux AppImage
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y python3-tk python3-dbus libfuse2 wget
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install customtkinter keyring pyinstaller
+
+      - name: Build with PyInstaller
+        run: >
+          pyinstaller --onefile --windowed
+          --icon sinkhole_express.ico
+          --name SinkholeExpress
+          --add-data "sinkhole_express_icon.png:."
+          --add-data "sinkhole_express.ico:."
+          --collect-data customtkinter
+          sinkhole_express.pyw
+
+      - name: Verify build output
+        run: |
+          test -f dist/SinkholeExpress && echo "Built SinkholeExpress ($(stat -c%s dist/SinkholeExpress) bytes)" || { echo "SinkholeExpress was not produced"; exit 1; }
+
+      - name: Download appimagetool
+        run: |
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+
+      - name: Create AppDir structure
+        run: |
+          mkdir -p AppDir/usr/bin
+          mkdir -p AppDir/usr/share/applications
+          mkdir -p AppDir/usr/share/icons/hicolor/512x512/apps
+          cp dist/SinkholeExpress AppDir/usr/bin/SinkholeExpress
+          cp sinkhole_express_icon.png AppDir/usr/share/icons/hicolor/512x512/apps/sinkhole-express.png
+          cp sinkhole_express_icon.png AppDir/sinkhole-express.png
+
+          cat > AppDir/usr/share/applications/sinkhole-express.desktop <<'DESKTOP'
+          [Desktop Entry]
+          Name=Sinkhole Express
+          Comment=Toggle Pi-hole v6 DNS blocking ON/OFF
+          Exec=SinkholeExpress
+          Icon=sinkhole-express
+          Terminal=false
+          Type=Application
+          Categories=Network;System;
+          DESKTOP
+
+          cat > AppDir/AppRun <<'APPRUN'
+          #!/bin/bash
+          HERE="$(dirname "$(readlink -f "${0}")")"
+          exec "${HERE}/usr/bin/SinkholeExpress" "$@"
+          APPRUN
+          chmod +x AppDir/AppRun
+
+      - name: Build AppImage
+        run: |
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage AppDir/ SinkholeExpress-x86_64.AppImage
+          test -f SinkholeExpress-x86_64.AppImage && echo "Built AppImage ($(stat -c%s SinkholeExpress-x86_64.AppImage) bytes)" || { echo "AppImage was not produced"; exit 1; }
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SinkholeExpress-linux
+          path: SinkholeExpress-x86_64.AppImage
+          if-no-files-found: error
+
+      - name: Attach AppImage to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} SinkholeExpress-x86_64.AppImage

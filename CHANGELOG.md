@@ -14,6 +14,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Greek-language HTML user guide.
 - Multi-Pi-hole support (profiles / dropdown).
 
+### Added
+- **Linux support.** The app now runs on modern Linux desktops (GNOME / KDE /
+  XFCE) alongside Windows 11. Platform-specific changes:
+  - `_set_window_icon()` uses `iconphoto()` with the PNG on Linux (was
+    `iconbitmap()` with `.ico` — Windows-only).
+  - `install_dependencies.sh` installs `python3-tk` via the system package
+    manager (apt / dnf / pacman / zypper) and pip packages via `pip --user`.
+  - `sinkhole-express.desktop` for Linux desktop integration.
+  - Config stored at `~/.config/SinkholeExpress/config.json` on Linux
+    (was already handled by the `APPDATA` fallback).
+  - Password storage uses the Secret Service API (`gnome-keyring` / `kwallet`)
+    via `keyring` on Linux.
+- **Linux AppImage builds** in CI. The Release workflow now produces both
+  `SinkholeExpress.exe` (Windows) and `SinkholeExpress-x86_64.AppImage` (Linux)
+  on every tag push.
+
 ## [1.0.0] - 2026-08-17
 
 ### Added

@@ -5,15 +5,16 @@
 </p>
 
 <p align="center">
-  Lightweight Windows 11 desktop utility to view and toggle
+  Lightweight desktop utility to view and toggle
   <a href="https://pi-hole.net/">Pi-hole</a> v6 DNS blocking ON/OFF,
   with live stats and gravity updates — without opening the Pi-hole web admin.
+  Runs on Windows 11 and Linux.
 </p>
 
 <p align="center">
   <a href="https://github.com/stavros-it/sinkhole-express/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/stavros-it/sinkhole-express/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/stavros-it/sinkhole-express/actions/workflows/release.yml"><img alt="Release" src="https://github.com/stavros-it/sinkhole-express/actions/workflows/release.yml/badge.svg"></a>
-  <a href="https://github.com/stavros-it/sinkhole-express/releases"><img alt="platform" src="https://img.shields.io/badge/platform-Windows%2011-blue"></a>
+  <a href="https://github.com/stavros-it/sinkhole-express/releases"><img alt="platform" src="https://img.shields.io/badge/platform-Windows%2011%20%7C%20Linux-blue"></a>
   <a href="https://www.python.org/downloads/"><img alt="python" src="https://img.shields.io/badge/python-3.12%2B-blue"></a>
   <a href="https://docs.pi-hole.net/main/ftldns/"><img alt="pi--hole" src="https://img.shields.io/badge/Pi--hole-v6%20REST%20API-green"></a>
   <a href="https://github.com/stavros-it/sinkhole-express/stargazers"><img alt="stars" src="https://img.shields.io/github/stars/stavros-it/sinkhole-express?style=social"></a>
@@ -28,8 +29,8 @@
 - **Statistics panel** — total queries, blocked, % blocked, domains on list, active clients, cached (today's totals).
 - **Pi-hole version panel** — shows CORE / WEB / FTL versions and flags when an update is available.
 - **Update Gravity** button — re-downloads and rebuilds blocklists (`pihole -g`) via the API.
-- **Settings window** — host, port, HTTPS toggle, masked app password (stored in Windows Credential Manager via `keyring`).
-- **Windowless launch** — `.pyw` + `pythonw.exe`, no console window.
+- **Settings window** — host, port, HTTPS toggle, masked app password (stored securely via `keyring`).
+- **Windowless launch** — `.pyw` + `pythonw.exe` (Windows) or `python3` (Linux), no console window.
 - **Auto-connect on launch** when credentials are already stored.
 - Built with [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) for a modern, dark UI.
 
@@ -48,12 +49,28 @@
 
 ## Requirements
 
-- **OS:** Windows 11 (primary; code is cross-platform but paths/credential store assume Windows).
-- **Python:** 3.12+ from [python.org](https://www.python.org/downloads/). Make sure **"Add python.exe to PATH"** is checked during install.
+- **OS:** Windows 11 or a modern Linux desktop (GNOME, KDE, XFCE, etc.).
+- **Python:** 3.12+
+  - **Windows:** from [python.org](https://www.python.org/downloads/). Make sure **"Add python.exe to PATH"** is checked during install.
+  - **Linux:** your distro's `python3` package. Also install `python3-tk` (ships separately on most distros) — the install script handles this.
 - **Pi-hole:** v6.x with the REST API enabled (not the legacy v5 `api.php`).
 - **App password:** in Pi-hole web admin → *Settings → Web interface / API → App password*.
+- **Linux only:** a Secret Service provider (`gnome-keyring` or `kwallet`) for password storage. Most desktop environments include one by default.
 
 ## Installation
+
+### Option A — Download a prebuilt binary (recommended)
+
+Grab the latest release from the [Releases page](https://github.com/stavros-it/sinkhole-express/releases):
+
+- **Windows:** download `SinkholeExpress.exe` and double-click.
+- **Linux:** download `SinkholeExpress-x86_64.AppImage`, make it executable, and run:
+  ```bash
+  chmod +x SinkholeExpress-x86_64.AppImage
+  ./SinkholeExpress-x86_64.AppImage
+  ```
+
+### Option B — Run from source
 
 1. Clone the repo:
    ```bash
@@ -61,15 +78,30 @@
    cd sinkhole-express
    ```
 2. Install Python dependencies:
+
+   **Windows:**
    ```bat
    install_dependencies.bat
    ```
    Installs `keyring` (Credential Manager access) and `customtkinter` (modern UI).
-3. *(Optional)* Create desktop shortcuts:
+
+   **Linux:**
+   ```bash
+   chmod +x install_dependencies.sh
+   ./install_dependencies.sh
+   ```
+   Installs `python3-tk` via your package manager, then `customtkinter` and `keyring` via pip.
+
+3. *(Optional, Windows only)* Create a desktop shortcut:
    ```bat
    create_desktop_shortcut.bat
    ```
    Creates a **"Sinkhole Express"** desktop shortcut that launches via `pythonw.exe` with the bundled `.ico`.
+
+4. Run the app:
+   ```bash
+   python3 sinkhole_express.pyw
+   ```
 
 ## Usage
 
@@ -119,11 +151,14 @@ Output suffix flags: `o` = redirect, `s` = TLS. Sinkhole Express auto-suggests 8
 Two separate stores — **the password is never written to disk in plaintext**.
 
 1. **Connection settings** → JSON file
-   - Path: `%APPDATA%\SinkholeExpress\config.json`
+   - Windows: `%APPDATA%\SinkholeExpress\config.json`
+   - Linux: `~/.config/SinkholeExpress/config.json`
    - Keys: `host`, `port`, `https`.
-2. **App password** → Windows Credential Manager (via `keyring`)
+2. **App password** → OS credential store (via `keyring`)
+   - Windows: Windows Credential Manager.
+   - Linux: Secret Service (`gnome-keyring` / `kwallet`).
    - Service name: `SinkholeExpress`, account: `app_password`.
-   - ⚠️ Any process running as the same Windows user can read this back. Acceptable for a personal workstation; bear it in mind for shared machines.
+   - ⚠️ Any process running as the same user can read this back. Acceptable for a personal workstation; bear it in mind for shared machines.
 
 ## Project structure
 
@@ -131,17 +166,28 @@ Two separate stores — **the password is never written to disk in plaintext**.
 |------|------|
 | `sinkhole_express.pyw` | Main app — CustomTkinter UI |
 | `sinkhole_express.ico` | Multi-res Windows icon (256→16 px) |
-| `sinkhole_express_icon.png` | 512 px PNG preview of the icon |
-| `install_dependencies.bat` | Installs `keyring` + `customtkinter` via pip |
-| `create_desktop_shortcut.bat` | Creates the desktop shortcut |
+| `sinkhole_express_icon.png` | 512 px PNG preview / Linux icon |
+| `install_dependencies.bat` | Installs deps on Windows |
+| `install_dependencies.sh` | Installs deps on Linux |
+| `create_desktop_shortcut.bat` | Creates the desktop shortcut (Windows) |
+| `sinkhole-express.desktop` | Linux desktop entry file |
 | `PROJECT_CONTEXT.md` | Architecture / endpoints reference for AI coding agents |
 
-## Building an `.exe`
+## Building from source
 
-Not bundled yet. Suggested invocation (per the author's usual pattern):
+Prebuilt binaries are produced by CI on every release tag. To build locally:
 
+**Windows (.exe):**
 ```bat
-pyinstaller --onefile --windowed --icon sinkhole_express.ico --name "SinkholeExpress" sinkhole_express.pyw
+pip install pyinstaller
+pyinstaller --onefile --windowed --icon sinkhole_express.ico --name "SinkholeExpress" --add-data "sinkhole_express.ico;." --add-data "sinkhole_express_icon.png;." --collect-data customtkinter sinkhole_express.pyw
+```
+
+**Linux (AppImage):**
+```bash
+pip install pyinstaller
+pyinstaller --onefile --windowed --icon sinkhole_express.ico --name "SinkholeExpress" --add-data "sinkhole_express_icon.png:." --add-data "sinkhole_express.ico:." --collect-data customtkinter sinkhole_express.pyw
+# Then wrap in an AppImage using appimagetool (see .github/workflows/release.yml for the full steps)
 ```
 
 ## Roadmap

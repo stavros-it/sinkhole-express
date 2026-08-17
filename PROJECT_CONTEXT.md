@@ -17,12 +17,15 @@ web admin. Runs as a windowless `.pyw` (no console).
 
 ## 2. Target environment
 
-- **OS:** Windows 11 (primary). Code is cross-platform but paths/credential
-  store assume Windows.
-- **Python:** 3.12 (python.org standard installer, `pythonw.exe` for launch).
+- **OS:** Windows 11 (primary) and modern Linux desktops (GNOME / KDE / XFCE).
+  Code is cross-platform; the icon-loading and config-path logic branch on
+  `sys.platform`.
+- **Python:** 3.12 (`pythonw.exe` for launch on Windows, `python3` on Linux).
 - **Pi-hole:** v6.x (REST API on `pihole-FTL`, NOT the legacy v5 `api.php`).
-- **Launch:** double-click `.pyw`, or via desktop shortcut created by the
-  bundled `.bat`.
+- **Launch:** double-click `.pyw`, via desktop shortcut (Windows) or
+  `.desktop` entry / AppImage (Linux).
+- **Linux deps:** `python3-tk` (system package), plus a Secret Service
+  provider (`gnome-keyring` or `kwallet`) for `keyring` password storage.
 
 ---
 
@@ -32,9 +35,11 @@ web admin. Runs as a windowless `.pyw` (no console).
 |------|------|
 | `sinkhole_express.pyw` | Main app — CustomTkinter UI |
 | `sinkhole_express.ico` | Multi-res Windows icon (256→16px) |
-| `sinkhole_express_icon.png` | 512px PNG preview of the icon |
-| `install_dependencies.bat` | Installs `keyring` + `customtkinter` via pip |
-| `create_desktop_shortcut.bat` | Creates the desktop shortcut |
+| `sinkhole_express_icon.png` | 512px PNG (Linux icon / preview) |
+| `install_dependencies.bat` | Installs `keyring` + `customtkinter` via pip (Windows) |
+| `install_dependencies.sh` | Installs `python3-tk` + pip packages (Linux) |
+| `create_desktop_shortcut.bat` | Creates the desktop shortcut (Windows) |
+| `sinkhole-express.desktop` | Linux desktop entry file |
 | `PROJECT_CONTEXT.md` | This file |
 
 There is **no** `requirements.txt`; dependencies are installed by the `.bat`.
@@ -102,6 +107,13 @@ Auth header for authenticated requests: `X-FTL-SID: <sid>`.
   (module-level constant, default False) — required for Pi-hole's self-signed
   cert. Set True only with a valid/trusted cert.
 
+### Icon loading (`_set_window_icon`)
+- **Windows** (`sys.platform == "win32"`): calls `win.iconbitmap()` with
+  `sinkhole_express.ico`.
+- **Linux / other**: calls `win.iconphoto()` with `sinkhole_express_icon.png`
+  (512px). The `PhotoImage` reference is pinned to `win._sinkhole_icon_img`
+  to prevent garbage collection.
+
 ### `_request` signature
 `_request(method, path, body=None, timeout=10, raw=False)` — `raw=True` returns
 the response body as a string instead of JSON-parsing it (needed for the gravity
@@ -161,9 +173,12 @@ Holds all editable connection values: host, port, HTTPS switch, masked password
   popup.
 
 ### Icon
-`_set_window_icon(win)` calls `win.iconbitmap()` with `sinkhole_express.ico`
-resolved relative to the script dir. `.ico` must sit next to the `.pyw`.
-Toplevel re-applies icon via `after(200, ...)` due to a timing quirk.
+`_set_window_icon(win)` loads the app icon relative to the script dir.
+On Windows it uses `win.iconbitmap()` with `sinkhole_express.ico`; on Linux
+it uses `win.iconphoto()` with `sinkhole_express_icon.png` (the PhotoImage
+is pinned to `win._sinkhole_icon_img` to avoid GC). The `.ico` and `.png`
+must sit next to the `.pyw`. Toplevel re-applies icon via `after(200, ...)`
+due to a timing quirk.
 
 ---
 

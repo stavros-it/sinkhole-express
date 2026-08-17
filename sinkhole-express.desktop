@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Sinkhole Express
+Comment=Toggle Pi-hole v6 DNS blocking ON/OFF
+Exec=python3 sinkhole_express.pyw
+Icon=sinkhole-express
+Terminal=false
+Type=Application
+Categories=Network;System;
+Keywords=pi-hole;pihole;dns;blocking;adblock;

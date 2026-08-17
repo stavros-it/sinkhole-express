@@ -16,11 +16,13 @@ Pi-hole v6 app password: Settings > Web interface / API > App password.
 """
 
 import os
+import sys
 import json
 import threading
 import urllib.request
 import urllib.error
 import ssl
+import tkinter as tk
 
 import customtkinter as ctk
 from tkinter import messagebox
@@ -35,11 +37,11 @@ DEFAULT_HTTPS = False
 VERIFY_TLS = False   # set True if using a valid cert over HTTPS
 # ---------------------------------------------------------------------------
 
-# Windows Credential Manager entry identifiers
+# Credential store service name (Windows Credential Manager / Secret Service on Linux)
 CRED_SERVICE = "SinkholeExpress"
 CRED_ACCOUNT = "app_password"
 
-# Config file location (%APPDATA% on Windows, ~/.config elsewhere)
+# Config file location (%APPDATA% on Windows, ~/.config on Linux/macOS)
 _APPDATA = os.environ.get("APPDATA") or os.path.expanduser("~/.config")
 CONFIG_DIR = os.path.join(_APPDATA, "SinkholeExpress")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
@@ -176,12 +178,19 @@ ctk.set_default_color_theme("blue")
 
 
 def _set_window_icon(win):
-    """Set the titlebar/taskbar icon from the bundled .ico if present."""
+    """Set the titlebar/taskbar icon. Uses .ico on Windows, .png elsewhere."""
     try:
-        ico = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                           "sinkhole_express.ico")
-        if os.path.exists(ico):
-            win.iconbitmap(ico)
+        base = os.path.dirname(os.path.abspath(__file__))
+        ico = os.path.join(base, "sinkhole_express.ico")
+        png = os.path.join(base, "sinkhole_express_icon.png")
+        if sys.platform == "win32":
+            if os.path.exists(ico):
+                win.iconbitmap(ico)
+        else:
+            if os.path.exists(png):
+                img = tk.PhotoImage(file=png)
+                win.iconphoto(True, img)
+                win._sinkhole_icon_img = img
     except Exception:
         pass
 
