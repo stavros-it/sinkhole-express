@@ -203,6 +203,8 @@ pyinstaller --onefile --windowed --icon sinkhole_express.ico --name "SinkholeExp
 - [ ] PyInstaller build script for a self-contained `.exe`.
 - [ ] Greek-language HTML user guide.
 - [ ] Multi-Pi-hole support (profiles / dropdown).
+- [ ] Generate SHA256 checksums for release assets so users can verify download integrity.
+- [ ] Investigate free code signing (e.g. SignPath Foundation for open-source projects) to clear the SmartScreen warning.
 
 ## License
 
