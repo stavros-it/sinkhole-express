@@ -64,6 +64,12 @@
 Grab the latest release from the [Releases page](https://github.com/stavros-it/sinkhole-express/releases):
 
 - **Windows:** download `SinkholeExpress.exe` and double-click.
+  > ⚠️ **SmartScreen warning:** because the `.exe` is not code-signed (this is a
+  > free, open-source project), Microsoft Defender SmartScreen may show
+  > *"Windows protected your PC"* or *"isn't commonly downloaded"*. This is
+  > expected. Click **More info** → **Run anyway** to launch the app. The file
+  > is built directly from the source in this repo by GitHub Actions — you can
+  > verify the build log on the Actions tab.
 - **Linux:** download `SinkholeExpress-x86_64.AppImage`, make it executable, and run:
   ```bash
   chmod +x SinkholeExpress-x86_64.AppImage
