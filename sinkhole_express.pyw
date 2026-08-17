@@ -53,11 +53,22 @@ def load_config():
             data = json.load(f)
     except Exception:
         data = {}
-    return {
-        "host": data.get("host", DEFAULT_HOST),
-        "port": data.get("port", DEFAULT_PORT),
-        "https": data.get("https", DEFAULT_HTTPS),
-    }
+    # Coerce types defensively: a hand-edited config could store strings
+    # (e.g. "false"), and bool("false") is True in Python.
+    host = data.get("host", DEFAULT_HOST)
+    if not isinstance(host, str):
+        host = str(host)
+    port = data.get("port", DEFAULT_PORT)
+    try:
+        port = int(port)
+    except (TypeError, ValueError):
+        port = DEFAULT_PORT
+    https = data.get("https", DEFAULT_HTTPS)
+    if isinstance(https, str):
+        https = https.strip().lower() in ("true", "1", "yes", "on")
+    else:
+        https = bool(https)
+    return {"host": host, "port": port, "https": https}
 
 
 def save_config(host, port, https):
@@ -113,15 +124,18 @@ class PiHoleAPI:
         try:
             with urllib.request.urlopen(req, context=self.ctx,
                                         timeout=timeout) as resp:
-                text = resp.read().decode()
+                # Pi-hole returns UTF-8; use errors="replace" so non-ASCII
+                # (e.g. accented chars in error messages) doesn't crash.
+                text = resp.read().decode("utf-8", errors="replace")
                 if raw:
                     return text
                 return json.loads(text) if text else {}
         except urllib.error.HTTPError as e:
             detail = ""
             try:
-                detail = json.loads(e.read().decode()).get(
-                    "error", {}).get("message", "")
+                detail = json.loads(
+                    e.read().decode("utf-8", errors="replace")
+                ).get("error", {}).get("message", "")
             except Exception:
                 pass
             raise RuntimeError(f"HTTP {e.code}: {detail or e.reason}")
@@ -419,6 +433,27 @@ class App(ctk.CTk):
                 self.after(0, lambda res=result: on_done(res, None))
         threading.Thread(target=worker, daemon=True).start()
 
+    def _disable_actions(self):
+        """Disable all action buttons during an async operation to prevent
+        overlapping requests on the same PiHoleAPI instance (race conditions
+        like double-auth or toggle-during-refresh)."""
+        self.toggle_btn.configure(state="disabled")
+        self.refresh_btn.configure(state="disabled")
+        self.gravity_btn.configure(state="disabled")
+
+    def _restore_actions(self):
+        """Re-enable action buttons after an async op completes.
+        toggle_btn: enabled only when we know the blocking state.
+        gravity_btn: enabled only with a valid session.
+        refresh_btn: always enabled (doubles as 'connect/retry' — refresh
+        falls through to connect() when there is no session)."""
+        self.toggle_btn.configure(
+            state="normal" if self.current is not None else "disabled")
+        has_session = self.api is not None and self.api.sid is not None
+        self.gravity_btn.configure(
+            state="normal" if has_session else "disabled")
+        self.refresh_btn.configure(state="normal")
+
     def _validate(self):
         host = self.host_var.get().strip()
         port = self.port_var.get().strip()
@@ -443,7 +478,7 @@ class App(ctk.CTk):
             return
         self.api = PiHoleAPI(self._build_base_url())
         self.status_lbl.configure(text="Authenticating...", text_color="#cccccc")
-        self.toggle_btn.configure(state="disabled")
+        self._disable_actions()
 
         def task():
             self.api.authenticate(pw)
@@ -470,6 +505,7 @@ class App(ctk.CTk):
             return
 
         self.status_lbl.configure(text="Refreshing...", text_color="#cccccc")
+        self._disable_actions()
 
         def task():
             status = self.api.get_status()
@@ -514,10 +550,21 @@ class App(ctk.CTk):
     def clear_stored(self):
         delete_password()
         self.pw_var.set("")
+        # Log out in the background so the UI doesn't freeze for up to 10s
+        # (logout uses the default network timeout). Capture the api reference
+        # and null the instance so no other code path reuses it.
         if self.api:
-            self.api.logout()
+            api = self.api
+            self.api = None
+            threading.Thread(target=lambda: api.logout(), daemon=True).start()
         self.current = None
-        self.toggle_btn.configure(state="disabled")
+        # Reset the stats / version / toggle UI so stale values don't linger.
+        for key in self.stat_vars:
+            self.stat_vars[key].configure(text="—")
+        self.version_lbl.configure(text="—")
+        self.update_lbl.configure(text="")
+        self.toggle_btn.configure(text="Toggle")
+        self._restore_actions()
         self.status_lbl.configure(text="Stored password cleared",
                                   text_color="#e0a030")
 
@@ -525,7 +572,7 @@ class App(ctk.CTk):
         if self.current is None or self.api is None:
             return
         new_state = not self.current
-        self.toggle_btn.configure(state="disabled")
+        self._disable_actions()
         self.status_lbl.configure(text="Updating...", text_color="#cccccc")
 
         def task():
@@ -608,37 +655,41 @@ class App(ctk.CTk):
                 "This can take up to a minute."):
             return
 
-        self.gravity_btn.configure(state="disabled", text="Updating…")
-        self.refresh_btn.configure(state="disabled")
+        self._disable_actions()
+        self.gravity_btn.configure(text="Updating…")
         self.status_lbl.configure(text="Updating gravity…", text_color="#cccccc")
 
         self._run(self.api.update_gravity, self._on_gravity_done)
 
     def _on_gravity_done(self, result, err):
-        self.gravity_btn.configure(state="normal", text="Update Gravity")
-        self.refresh_btn.configure(state="normal")
+        self.gravity_btn.configure(text="Update Gravity")
         if err is not None:
             self.status_lbl.configure(text="Gravity update failed",
                                       text_color="#e05555")
+            self._restore_actions()
             messagebox.showerror("Update Gravity", str(err))
             return
         self.status_lbl.configure(text="Gravity updated ✓",
                                   text_color="#4caf50")
+        # Re-enable buttons before the scheduled refresh (which will disable
+        # them again briefly); avoids a frozen-looking UI during the 300ms gap.
+        self._restore_actions()
         # Refresh stats so the new blocklist size shows
         self.after(300, self.refresh)
 
     def _on_status(self, result, err):
         if err is not None:
+            # Clear the known state — we don't know if the toggle succeeded.
+            self.current = None
             self.status_lbl.configure(text="Error", text_color="#e05555")
-            self.toggle_btn.configure(state="disabled")
+            self.toggle_btn.configure(text="Toggle")
+            self._restore_actions()
             messagebox.showerror("Pi-hole Error", str(err))
             return
 
         status, stats, version = result
         self._update_stats(stats)
         self._update_version(version)
-        # Gravity update is available once we have a working session
-        self.gravity_btn.configure(state="normal")
 
         if status == "enabled":
             self.current = True
@@ -658,11 +709,23 @@ class App(ctk.CTk):
             self.current = None
             self.status_lbl.configure(text=f"Unknown: {status}",
                                       text_color="#cccccc")
-            self.toggle_btn.configure(state="disabled")
+            # Reset text so a stale "Disable/Enable Blocking" label doesn't
+            # linger next to a disabled button.
+            self.toggle_btn.configure(text="Toggle", state="disabled")
+        # Re-enable refresh + gravity (session is valid after a successful
+        # status read). toggle_btn state was already set per-branch above.
+        self._restore_actions()
 
     def destroy(self):
+        # Log out in the background so closing the window is instant —
+        # logout uses the default 10s network timeout and would otherwise
+        # hang the UI on a slow / unreachable Pi-hole. The daemon thread
+        # dies with the process; if the DELETE doesn't land, the Pi-hole
+        # session expires on its own (TTL).
         if self.api:
-            self.api.logout()
+            api = self.api
+            self.api = None
+            threading.Thread(target=lambda: api.logout(), daemon=True).start()
         super().destroy()
 
 

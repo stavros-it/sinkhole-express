@@ -46,7 +46,9 @@ jobs:
         run: pip install ruff
 
       - name: Run ruff check
-        run: ruff check --select F --ignore F401,F841 .
+        # Explicitly name the .pyw: ruff's default include (*.py/*.pyi/*.ipynb)
+        # skips .pyw files, so `ruff check .` was a no-op for the app code.
+        run: ruff check --select F --ignore F401,F841 sinkhole_express.pyw
 
       - name: Run ruff format check
         run: ruff format --check --diff .

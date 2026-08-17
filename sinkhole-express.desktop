@@ -1,8 +1,15 @@
 [Desktop Entry]
 Name=Sinkhole Express
 Comment=Toggle Pi-hole v6 DNS blocking ON/OFF
-Exec=python3 sinkhole_express.pyw
-Icon=sinkhole-express
+# Launch the .pyw that sits next to this .desktop file. %k is a freedesktop
+# field code that expands to this .desktop file's full path; dirname strips
+# the filename so we cd into the source dir before running python3. If %k is
+# unset (some desktop environments don't set it), fall back to $PWD.
+Exec=sh -c 'DIR="$(dirname "%k")"; [ -n "$DIR" ] && cd "$DIR"; python3 sinkhole_express.pyw'
+# Icon name matches the bundled sinkhole_express_icon.png. For the icon to
+# appear in your application menu, install it to:
+#   ~/.local/share/icons/hicolor/512x512/apps/sinkhole_express_icon.png
+Icon=sinkhole_express_icon
 Terminal=false
 Type=Application
 Categories=Network;System;

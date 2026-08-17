@@ -51,13 +51,36 @@ python3 --version
 echo ""
 
 # --- Upgrade pip first ---
+# Modern distros (Ubuntu 23.04+, Fedora 38+) block `pip install --user` via
+# PEP 668 ("externally-managed-environment"). The pip upgrade itself is
+# non-critical, so try --user, then --break-system-packages, then give up
+# silently rather than aborting the whole install.
 echo "Upgrading pip..."
-python3 -m pip install --upgrade pip --user
+python3 -m pip install --upgrade pip --user 2>/dev/null \
+    || python3 -m pip install --upgrade pip --break-system-packages 2>/dev/null \
+    || echo "[WARN] Could not upgrade pip (continuing with the installed version)."
 echo ""
 
 # --- Install required Python packages ---
 echo "Installing required packages: customtkinter, keyring ..."
-python3 -m pip install --upgrade customtkinter keyring --user
+if ! python3 -m pip install --upgrade customtkinter keyring --user 2>/dev/null; then
+    echo ""
+    echo "[INFO] --user install was blocked (likely PEP 668 externally-managed"
+    echo "       environment — common on Ubuntu 23.04+, Fedora 38+)."
+    echo "       Retrying with --break-system-packages..."
+    if ! python3 -m pip install --upgrade customtkinter keyring --break-system-packages; then
+        echo ""
+        echo "[ERROR] Could not install Python packages via pip."
+        echo "        Your distro is blocking system-wide pip installs."
+        echo "        Create a virtual environment and install there:"
+        echo ""
+        echo "          python3 -m venv ~/.venvs/sinkhole-express"
+        echo "          ~/.venvs/sinkhole-express/bin/pip install customtkinter keyring"
+        echo "          ~/.venvs/sinkhole-express/bin/python3 sinkhole_express.pyw"
+        echo ""
+        exit 1
+    fi
+fi
 
 echo ""
 echo "============================================"
