@@ -148,7 +148,9 @@ pyinstaller --onefile --windowed --icon sinkhole_express.ico --name "SinkholeExp
 
 ## License
 
-This project is released for personal use. No license file is bundled — see the Pi-hole project itself for the upstream licensing of the API / brand referenced here. "Pi-hole" is a trademark of Pi-hole, LLC; this project is independent and not affiliated with Pi-hole.
+Licensed under the **MIT License** — see [LICENSE](LICENSE).
+
+"Pi-hole" is a trademark of Pi-hole, LLC; this project is independent and not affiliated with Pi-hole.
 
 ## Acknowledgements
 
